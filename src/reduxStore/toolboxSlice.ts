@@ -1,6 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { iconOptions, colorOption, iconstype } from '@/constants/Constants';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { count } from 'console';
 interface ChangePencilPropertyPayload {
   newColor?: string;
   newSize?: string;
@@ -15,8 +16,7 @@ export interface ToolboxState {
     color: string;
     size: string;
   };
-  undoProperty: Record<string, never>; // Adjust the type if needed
-  redoProperty: Record<string, never>; // Adjust the type if needed
+  totalImages: (ImageData | undefined)[];
 }
 const toolboxSlice = createSlice({
   name: 'toolbox',
@@ -29,8 +29,7 @@ const toolboxSlice = createSlice({
       color: colorOption.white,
       size: '3',
     },
-    undoProperty: {},
-    redoProperty: {},
+    totalImages: [],
   } as ToolboxState,
   reducers: {
     changePencilProperty: (
@@ -44,10 +43,24 @@ const toolboxSlice = createSlice({
     changeEraserProperty: (state, action: PayloadAction<string>) => {
       state.eraserProperty.size = action.payload;
     },
+    setImagesWhenMouseUp: (
+      state,
+      action: PayloadAction<ImageData | undefined>
+    ) => {
+      console.log('image is setting');
+      state.totalImages = [...state.totalImages, action.payload];
+      console.log('images from redux', state.totalImages);
+    },
+    // setUndoProperty: (state, action) => {
+    //   state.totalImages.items.push(action.payload);
+    // },
   },
 });
 
-export const { changePencilProperty, changeEraserProperty } =
-  toolboxSlice.actions;
+export const {
+  changePencilProperty,
+  changeEraserProperty,
+  setImagesWhenMouseUp,
+} = toolboxSlice.actions;
 
 export default toolboxSlice.reducer;

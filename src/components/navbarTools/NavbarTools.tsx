@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { iconOptions } from '@/constants/Constants';
 import Button from '../UI/Button';
@@ -30,16 +30,26 @@ const NavbarTools = () => {
   const { color, size } = useSelector(
     (store: RootState) => store.toolbox.pencilProperty
   );
+  const currentTabName: string = useSelector(
+    (store: RootState) => store.app.currentNavbarTool
+  );
   console.log('currentPencilColor', color, size);
 
   const navToolbarhandler = (iconName: IconDefinition) => {
     (iconName === iconOptions.PENCILICON || iconName === iconOptions.ERASER) &&
       setCurrentMenu(iconName);
     dispatch(setCurrentNavbarTool(iconName));
+    if (
+      iconName === iconOptions.UNDO ||
+      iconName === iconOptions.REDO ||
+      iconName === iconOptions.SAVE
+    )
+      return;
     iconName !== iconOptions.PENCILICON
       ? dispatch(changeColorOptionVisibility('hideColorOptions'))
       : dispatch(changeColorOptionVisibility('ColorOptions'));
   };
+
   return (
     <div className=' ml-[34rem] mt-8 flex justify-center absolute items-center'>
       <div className='w-72 h-14 rounded-lg border shadow-md bg-transparent  flex gap-5 justify-center items-center'>
