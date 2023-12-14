@@ -4,6 +4,7 @@ import Colorbox from './Colorbox';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../reduxStore/store';
 import { colorOptionsType } from '@/constants/Constants';
+import { socket } from '../../../socket';
 import {
   changeEraserProperty,
   changePencilProperty,
@@ -18,6 +19,9 @@ const SidebarTools = () => {
   const eraserProperty: any = useSelector(
     (store: RootState) => store.toolbox.eraserProperty
   );
+  const pensilProperty: any = useSelector(
+    (store: RootState) => store.toolbox.pencilProperty
+  );
   const currentNavTool: string = useSelector(
     (store: RootState) => store.app.currentNavbarTool
   );
@@ -25,15 +29,20 @@ const SidebarTools = () => {
   const dispatch: Dispatch<any> = useDispatch();
   const changePencilShadeHandler = (color: string) => {
     dispatch(changePencilProperty({ newColor: color }));
+    socket.emit('changeConfig', { color: color, size: pensilProperty.size });
   };
-  console.log('eraserProperty', eraserProperty);
-  console.log('currentNavTool', currentNavTool);
-  console.log('colorOptionVisibility', colorOptionVisibility);
+
   const changeSizeHandler = (event: ChangeEvent<HTMLInputElement>) => {
     setRangeValue(event.target.value);
-    colorOptionVisibility
-      ? dispatch(changePencilProperty({ newSize: event.target.value }))
-      : dispatch(changeEraserProperty(event.target.value));
+    socket.emit('changeConfig', {
+      color: pensilProperty.color,
+      size: event.target.value,
+    });
+    if (colorOptionVisibility) {
+      dispatch(changePencilProperty({ newSize: event.target.value }));
+    } else {
+      dispatch(changeEraserProperty(event.target.value));
+    }
   };
 
   useEffect(() => {
@@ -41,7 +50,7 @@ const SidebarTools = () => {
       setRangeValue('3');
     }
   }, [currentNavTool]);
-  console.log('rangeValue', rangeValue);
+
   return (
     <div
       className={`${

@@ -47,13 +47,8 @@ const toolboxSlice = createSlice({
       state,
       action: PayloadAction<ImageData | undefined>
     ) => {
-      console.log('image is setting');
       state.totalImages = [...state.totalImages, action.payload];
-      console.log('images from redux', state.totalImages);
     },
-    // setUndoProperty: (state, action) => {
-    //   state.totalImages.items.push(action.payload);
-    // },
   },
 });
 

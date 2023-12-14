@@ -14,7 +14,6 @@ const appSlice = createSlice({
     },
     setCurrentNavbarTool: (state, action) => {
       state.currentNavbarTool = action.payload.iconName;
-      console.log(state.currentNavbarTool);
     },
   },
 });

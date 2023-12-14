@@ -17,6 +17,7 @@ import {
 } from '@/reduxStore/appSlice';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '@/reduxStore/store';
+import { socket } from '../../../socket';
 
 type pencilColor = {
   color?: string | undefined;
@@ -33,7 +34,9 @@ const NavbarTools = () => {
   const currentTabName: string = useSelector(
     (store: RootState) => store.app.currentNavbarTool
   );
-  console.log('currentPencilColor', color, size);
+  const eraserProperty: any = useSelector(
+    (store: RootState) => store.toolbox.eraserProperty
+  );
 
   const navToolbarhandler = (iconName: IconDefinition) => {
     (iconName === iconOptions.PENCILICON || iconName === iconOptions.ERASER) &&
@@ -48,6 +51,13 @@ const NavbarTools = () => {
     iconName !== iconOptions.PENCILICON
       ? dispatch(changeColorOptionVisibility('hideColorOptions'))
       : dispatch(changeColorOptionVisibility('ColorOptions'));
+
+    if (iconName === iconOptions.ERASER) {
+      socket.emit('changeConfig', {
+        color: eraserProperty.color,
+        size: eraserProperty.size,
+      });
+    }
   };
 
   return (

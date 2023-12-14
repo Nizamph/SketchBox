@@ -4,7 +4,8 @@ import { setImagesWhenMouseUp } from '@/reduxStore/toolboxSlice';
 import React, { MutableRefObject, useEffect, useState } from 'react';
 import { useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-
+import { Socket } from 'socket.io';
+import { socket } from '../../../socket';
 type properties = {
   color: string;
   size: string | undefined;
@@ -26,7 +27,7 @@ const Board = () => {
 
   const pointer: React.MutableRefObject<number> = useRef(0);
   const imageHistory: React.MutableRefObject<ImageData[]> = useRef([]);
-
+  socket.on('connect', () => {});
   useEffect(() => {
     if (!currentRef.current) return;
     currentRef.current.width = window.innerWidth;
@@ -48,11 +49,13 @@ const Board = () => {
       shouldDraw.current = true;
       if (shouldDraw.current) {
         beginDraw(e.clientX, e.clientY);
+        socket.emit('beginDraw', { x: e.clientX, y: e.clientY });
       }
     };
     const mouseMoveHandler = (e: any) => {
       if (shouldDraw.current) {
         drawLine(e.clientX, e.clientY);
+        socket.emit('drawLine', { x: e.clientX, y: e.clientY });
       }
     };
     const mouseUpHandler = (e: any) => {
@@ -71,14 +74,25 @@ const Board = () => {
       }
     };
 
+    const beginDrawHandler = (path: { x: number; y: number }) => {
+      beginDraw(path.x, path.y);
+    };
+
+    const drawLineHandler = (path: { x: number; y: number }) => {
+      drawLine(path.x, path.y);
+    };
+
     canvas.addEventListener('mousedown', mouseDownHandler);
     canvas.addEventListener('mousemove', mouseMoveHandler);
     canvas.addEventListener('mouseup', mouseUpHandler);
-
+    socket.on('beginDraw', beginDrawHandler);
+    socket.on('drawLine', drawLineHandler);
     return () => {
       canvas.removeEventListener('mousedown', mouseDownHandler);
       canvas.removeEventListener('mousemove', mouseMoveHandler);
       canvas.removeEventListener('mouseup', mouseUpHandler);
+      socket.off('beginDraw', beginDrawHandler);
+      socket.off('drawLine', drawLineHandler);
     };
   }, []);
 
@@ -88,7 +102,7 @@ const Board = () => {
     const canvas: HTMLCanvasElement | null = currentRef.current;
     const context: CanvasRenderingContext2D | null = canvas?.getContext('2d');
 
-    const changeConfig = () => {
+    const toolbarActions = () => {
       if (!context) return;
 
       if (currentTabName === 'pencil') {
@@ -108,14 +122,11 @@ const Board = () => {
           pointer.current = pointer.current + 1;
         }
         if (imageHistory.current.length - 1 > 0) {
-          console.log('inside rotate left');
           if (currentTabName === 'rotate-left' && pointer.current > 0)
             pointer.current = pointer.current - 1;
 
-          console.log('pointer is here', pointer.current);
           const currentImage = imageHistory.current[pointer.current];
           if (currentImage) {
-            console.log('inside current image');
             context.putImageData(currentImage, 0, 0);
             dispatch(setCurrentNavbarTool(''));
           }
@@ -129,9 +140,23 @@ const Board = () => {
       }
     };
 
-    changeConfig();
+    const changeConfig = (color: string, size: string) => {
+      if (context) {
+        context.strokeStyle = color;
+        context.lineWidth = Number(size);
+      }
+    };
+    const handleChangeConfig = (config: { color: string; size: string }) => {
+      changeConfig(config.color, config.size);
+    };
+    toolbarActions();
+    socket.on('changeConfig', handleChangeConfig);
+
+    return () => {
+      socket.off('changeConfig', handleChangeConfig);
+    };
   }, [pencilProperties, eraserProperties, currentTabName, pointer]);
-  console.log('component rendering');
+
   return <canvas ref={currentRef}></canvas>;
 };
 
