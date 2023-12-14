@@ -61,7 +61,7 @@ const NavbarTools = () => {
   };
 
   return (
-    <div className=' ml-[34rem] mt-8 flex justify-center absolute items-center'>
+    <div className=' ml-24 mt-8 flex justify-center absolute items-center sm:ml-14 md:ml-[28rem] lg:ml-[34rem]'>
       <div className='w-72 h-14 rounded-lg border shadow-md bg-transparent  flex gap-5 justify-center items-center'>
         {Object.keys(iconOptions)?.map((iconName, index) => (
           <React.Fragment key={index}>
